@@ -41,6 +41,4 @@ public class Cadaver {
 	public String toString() {
 		return this.id + ";" + this.nome + ";" + this.peso;
 	}
-    
-    
 }

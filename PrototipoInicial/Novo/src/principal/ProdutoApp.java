@@ -16,6 +16,7 @@ import caminhos.*;
 
 public class ProdutoApp extends JFrame {
 	
+	// Variaveis geradas pelo Chat GPT
     private static final String LOGIN_FILE = "login.csv";
     private static final String DATA_FILE_STRING = caminhos.Paths.getDataPath();
     private List<Cadaver> cadaveres;
@@ -24,30 +25,36 @@ public class ProdutoApp extends JFrame {
     private CardLayout cardLayout;
 
     public ProdutoApp() {
+    	
+    	// Parametros gerados pelo Chat GPT
         setTitle("Gerenciamento Necroterio");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
+        //Esse array list recebe todos os registros do arquivo quando o programa é iniciado
         cadaveres = new ArrayList<>();
 
+        // Variavies do Chat GPT
         mainPanel = new JPanel();
         cardLayout = new CardLayout();
         mainPanel.setLayout(cardLayout);
 
+        //Chamada da funçao para criar painel home
         createHomePanel();
 
         mainPanel.add(homePanel, "home");
 
         add(mainPanel);
         
+        
+        // Verificar se existe um ADMIN cadastrado
         AdminCheck();
         
         if (realizarLogin()) {
-        	
-        	Inicializar();
-        	lerProdutosDoArquivo();
-            showHomePage();
+        	Inicializar(); // Verifica os arquivos de dados
+        	lerProdutosDoArquivo(); // Essa funçao usa a variavel List<Cadaver> cadaveres
+            showHomePage(); // Exibe a home page
             setVisible(true);
             
         } else {
@@ -58,6 +65,8 @@ public class ProdutoApp extends JFrame {
         }
     }
     
+    /*Metodo para verificar se ja existe o arquivo de admins, na pasta do projeto, ../Novo/login.csv
+     * caso não exista o metodo cria o arquivo e pede um admin inicial */
     private void AdminCheck()
     {
     	File login = new File(LOGIN_FILE);
@@ -88,9 +97,11 @@ public class ProdutoApp extends JFrame {
 		}
     }
     
+    /*Metodo de inicialização para verificar se existe a pasta e o arquivo de dados dos cadaveres
+     * ambos sao criados no Desktop*/
     private void Inicializar()
 	{
-		String folderPath = caminhos.Paths.getDataFolderString();
+		String folderPath = caminhos.Paths.getDataFolderPath();
 		File folder = new File(folderPath);
 		String dataPath = folderPath + "/data.csv";
 		File data = new File(dataPath);
@@ -122,13 +133,14 @@ public class ProdutoApp extends JFrame {
 		}
 	}
 
+    /*Metodo para realizar Login - 100% Chat GPT*/
     private boolean realizarLogin() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BorderLayout());
 
         JLabel titleLabel = new JLabel("Bem vindo ao Gerenciamento do Necroterio");
         titleLabel.setHorizontalAlignment(JLabel.CENTER);
-        loginPanel.add(titleLabel, BorderLayout.NORTH);
+        loginPanel.add(titleLabel, BorderLayout.NORTH);	
 
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new GridLayout(2, 2));
@@ -166,32 +178,69 @@ public class ProdutoApp extends JFrame {
         return false;
     }
 
+    /*Metodo para CRIAR Pagina inicial, exibida apos realizar login*/
     private void createHomePanel() {
         homePanel = new JPanel();
-        homePanel.setLayout(new BorderLayout());
+        homePanel.setLayout(new BorderLayout(100, 100));
 
-        // Create the buttons panel
+        // Criar painel de botoes
         JPanel buttonsPanel = new JPanel();
+        
+        // Criar botão Listar Registros
         JButton produtosButton = new JButton("Lista de Registros");
         produtosButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mostrarProdutos();
             }
         });
+        //Adiciona o botao ao painel de botao
         buttonsPanel.add(produtosButton);
 
-        // Create the add produto button
+        // Criar botão Adicionar Registro
         JButton addProdutoButton = new JButton("Adicionar Registro");
         addProdutoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 adicionarCadaver();
             }
         });
+        //Adiciona o botao ao painel de botao
         buttonsPanel.add(addProdutoButton);
+        
+        //Criando botão atualizar cadaver
+        JButton atualizarButton = new JButton("Atualizar Registro");
+        atualizarButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EmDesenvolvimento();
+			}
+		});
+        //Adiciona o botao ao painel de botao
+        buttonsPanel.add(atualizarButton);
 
+        // Adicionar painel de botoes ao painel da pagina criado anteriormente
         homePanel.add(buttonsPanel, BorderLayout.NORTH);
+        
+        
+        
+        //Novo painel de botoes admin
+        JPanel painelBotaoAdmin = new JPanel();
+        painelBotaoAdmin.setLayout(new BorderLayout(100, 100));
+        
+        //Novo botao
+        JButton adminButton = new JButton("Area do Administrador");
+        adminButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				EmDesenvolvimento();
+			}
+		});
+        //Adiciona o botao ao painel de botao
+        painelBotaoAdmin.add(adminButton);        
+        
+        //Adiciona o painel de botao ao painel da pagina
+        homePanel.add(adminButton, BorderLayout.AFTER_LAST_LINE);
     }
 
+    /*Metodo executado quando clicado no botao LISTAR REGISTROS
+     * abre uma nova tela e exibe todos os registros do arquivo*/
     private void mostrarProdutos() {
         lerProdutosDoArquivo(); // Read the products from the file
 
@@ -216,11 +265,14 @@ public class ProdutoApp extends JFrame {
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
-
+    
+    /*Metodo apenas para EXIBIR a pagina inicial*/
     private void showHomePage() {
         cardLayout.show(mainPanel, "home");
     }
 
+    /*Metodo executado quando clicado no botao ADICIONAR REGISTROS
+     * abre varias caixas de dialogo e adiciona um novo registro no arquivo*/
     private void adicionarCadaver() {
         String nome = JOptionPane.showInputDialog(this, "Digite o Nome do Corpo:");
         if (nome != null && !nome.isEmpty()) {
@@ -237,6 +289,7 @@ public class ProdutoApp extends JFrame {
         }
     }
 
+    /*Metodo auxiliar para escrever dados no arquivo .csv*/
     private void escreverProdutosNoArquivo() {
         try (FileWriter writer = new FileWriter(DATA_FILE_STRING, true)) {
             Cadaver produto = cadaveres.get(cadaveres.size() - 1);
@@ -248,6 +301,7 @@ public class ProdutoApp extends JFrame {
         }
     }
 
+    /*Metodo auxiliar para ler todos os registros do arquivo .csv*/
     private void lerProdutosDoArquivo() {
     	cadaveres.clear();
         try {
@@ -264,6 +318,11 @@ public class ProdutoApp extends JFrame {
         }
     }
 
+    private void EmDesenvolvimento()
+    {
+    	JOptionPane.showMessageDialog(this, "Em Desenvolvimento...");
+    }
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
