@@ -1,4 +1,4 @@
-package caminhos;
+package common;
 
 import javax.swing.filechooser.FileSystemView;
 
