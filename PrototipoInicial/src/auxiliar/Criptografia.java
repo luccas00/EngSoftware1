@@ -41,22 +41,5 @@ public class Criptografia {
         UUID uuid = UUID.randomUUID();
         return uuid.toString();
     }
-
-    public static void main(String[] args) {
-        try {
-            String input = "Hello, World!";
-            String key = generateGUID();
-
-            String encrypted = encrypt(input, key);
-            String decrypted = decrypt(encrypted, key);
-
-            System.out.println("Original: " + input);
-            System.out.println("Encrypted: " + encrypted);
-            System.out.println("Decrypted: " + decrypted);
-            System.out.println("Key: " + key);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 	
 }

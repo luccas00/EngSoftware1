@@ -261,7 +261,6 @@ public class Controlador extends JFrame {
         }
         return false;
     }
-
     
     private void createHomePanel() {
     	
@@ -273,11 +272,13 @@ public class Controlador extends JFrame {
         JButton adminButton = new JButton("Área do Administrador");
         adminButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+            	if (autenticarAdmin())
+            	{
+            		abrirOpcoesAdmin();
+            	}
             }
         });
         bottomPanel.add(adminButton);
-
         // Add the bottom panel to the page panel
         homePanel.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -644,8 +645,6 @@ public class Controlador extends JFrame {
         }
     }
 
-    
-
     public void listaOrdenada() {
         // Show the option dialog with the buttons
         int option = JOptionPane.showOptionDialog(
@@ -702,15 +701,24 @@ public class Controlador extends JFrame {
     public void buscarRegistrosPorNome() {
         // Ask the user for the search query
         String searchQuery = JOptionPane.showInputDialog(this, "Digite o Nome para buscar:");
-
+        
+        if (searchQuery == null) {
+            // User canceled the input or closed the dialog
+            return;
+        }
+        
         // Create lists to store the search results
         List<Cadaver> searchResults = new ArrayList<>();
 
         // Perform the search based on the user's choice (name or CPF)
         for (Cadaver cadaver : cadaveres) {
-            if (cadaver.getNome().equalsIgnoreCase(searchQuery)) {
-                searchResults.add(cadaver);
-            }
+        	if (searchQuery != null)
+        	{
+        		if (cadaver.getNome().toLowerCase().contains(searchQuery.toLowerCase())) {
+                    searchResults.add(cadaver);
+                }
+        	}
+            
         }
 
         // Check if any results were found
@@ -724,82 +732,187 @@ public class Controlador extends JFrame {
     }
 
     public void buscarRegistrosPorCPF() {
-        // Ask the user for the search query
-        String searchQuery = JOptionPane.showInputDialog(this, "Digite o CPF para buscar:");
+    	
+    	JTextField cpfField = new JTextField(15);
 
-        // Create lists to store the search results
-        List<Cadaver> searchResults = new ArrayList<>();
-
-        // Perform the search based on the user's choice (name or CPF)
-        for (Cadaver cadaver : cadaveres) {
-            if (cadaver.getCpf().equals(searchQuery)) {
-                searchResults.add(cadaver);
+        // Set placeholder for CPF field
+        cpfField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (cpfField.getText().equals("Apenas Números")) {
+                    cpfField.setText("");
+                    cpfField.setForeground(Color.BLACK);
+                }
             }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (cpfField.getText().isEmpty()) {
+                    cpfField.setText("Apenas Números");
+                    cpfField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Digite o CPF do Registro:"));
+        panel.add(cpfField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+        	// Ask the user for the search query
+            String searchQuery = cpfField.getText().replaceAll("[^0-9]", "");
+            
+            // Create lists to store the search results
+            List<Cadaver> searchResults = new ArrayList<>();
+
+            // Perform the search based on the user's choice (name or CPF)
+            for (Cadaver cadaver : cadaveres) {
+                if (cadaver.getCpf().equals(formatCPF(searchQuery))) {
+                    searchResults.add(cadaver);
+                }
+            }
+
+            // Check if any results were found
+            if (searchResults.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
+                return;
+            }
+            
+            // Display the search results using the mostrarCadaverOrdenado() method
+            mostrarCadaverOrdenado(searchResults);
         }
 
-        // Check if any results were found
-        if (searchResults.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
-            return;
-        }
-        
-        // Display the search results using the mostrarCadaverOrdenado() method
-        mostrarCadaverOrdenado(searchResults);
     }
     
-    
     public void apagarRegistroPorCPF() {
-        String searchQuery = JOptionPane.showInputDialog(this, "Digite o CPF para apagar o registro:");
+    	
+    	JTextField cpfField = new JTextField(15);
+
+        // Set placeholder for CPF field
+        cpfField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (cpfField.getText().equals("Apenas Números")) {
+                    cpfField.setText("");
+                    cpfField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (cpfField.getText().isEmpty()) {
+                    cpfField.setText("Apenas Números");
+                    cpfField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Digite o CPF para apagar o registro:"));
+        panel.add(cpfField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
+
+        String searchQuery = cpfField.getText();
+        
         if (searchQuery == null) {
             // User canceled the input or closed the dialog
             return;
         }
-        searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove non-numeric characters
-        searchQuery = formatCPF(searchQuery);
         
-        // Read all lines from the CSV file
-        try {
-            List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
-            boolean found = false;
-
-            // Create a temporary list to store lines that don't match the searched CPF
-            List<String> updatedLines = new ArrayList<>();
-            String linha = "";
+        if (result == JOptionPane.OK_OPTION) {
+        	searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove non-numeric characters
+            searchQuery = formatCPF(searchQuery);
             
-            // Search for the record with the given CPF and remove it from the lines list
-            for (String line : lines) {
-                if (!line.startsWith(searchQuery + ";")) {
-                    updatedLines.add(line);
-                } else {
-                    found = true;
-                    linha = line;
+            // Read all lines from the CSV file
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
+                boolean found = false;
+
+                // Create a temporary list to store lines that don't match the searched CPF
+                List<String> updatedLines = new ArrayList<>();
+                String linha = "";
+                
+                // Search for the record with the given CPF and remove it from the lines list
+                for (String line : lines) {
+                    if (!line.startsWith(searchQuery + ";")) {
+                        updatedLines.add(line);
+                    } else {
+                        found = true;
+                        linha = line;
+                    }
                 }
-            }
 
-            // If the CPF is not found, display a message and return
-            if (!found) {
-                JOptionPane.showMessageDialog(this, "CPF não encontrado no arquivo.");
-                return;
-            }
-            
-            Cadaver corpo = Cadaver.parseCadaver(linha);
+                // If the CPF is not found, display a message and return
+                if (!found) {
+                    JOptionPane.showMessageDialog(this, "CPF não encontrado no arquivo.");
+                    return;
+                }
+                
+                Cadaver corpo = Cadaver.parseCadaver(linha);
 
-            // Confirm the deletion before proceeding
-            int confirmation = JOptionPane.showConfirmDialog(this, "Deseja apagar o registro com o CPF: " + searchQuery + "?" + 
-            "\nNome: " + corpo.getNome() + "\nSituação: " + corpo.getSituacao(), "Confirmação", JOptionPane.YES_NO_OPTION);
-            if (confirmation == JOptionPane.YES_OPTION) {
-            	if (autenticarAdmin())
-            	{
-            		// Write the updated data back to the CSV file
-                    Files.write(Paths.get(common.Paths.getDataPath()), updatedLines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                // Confirm the deletion before proceeding
+                int confirmation = JOptionPane.showConfirmDialog(this, "Deseja apagar o registro com o CPF: " + searchQuery + "?" + 
+                "\nNome: " + corpo.getNome() + "\nSituação: " + corpo.getSituacao(), "Confirmação", JOptionPane.YES_NO_OPTION);
+                if (confirmation == JOptionPane.YES_OPTION) {
+                	if (autenticarAdmin())
+                	{
+                		// Write the updated data back to the CSV file
+                        Files.write(Paths.get(common.Paths.getDataPath()), updatedLines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-                    JOptionPane.showMessageDialog(this, "Registro apagado com sucesso!");
-            	}
+                        JOptionPane.showMessageDialog(this, "Registro apagado com sucesso!");
+                	}
+                }
+                
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao acessar o arquivo: " + e.getMessage());
             }
-            
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(this, "Erro ao acessar o arquivo: " + e.getMessage());
         }
+        
+    }
+    
+    public void abrirOpcoesAdmin() {
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
+
+        JButton adicionarAdminButton = new JButton("Adicionar Admin");
+        adicionarAdminButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        adicionarAdminButton.addActionListener(e -> EmDesenvolvimento());
+
+        JButton removerAdminButton = new JButton("Remover Admin");
+        removerAdminButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        removerAdminButton.addActionListener(e -> EmDesenvolvimento());
+
+        JButton cancelButton = new JButton("Cancelar");
+        cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        cancelButton.addActionListener(e -> EmDesenvolvimento());
+
+        optionsPanel.add(Box.createVerticalStrut(20));
+        optionsPanel.add(adicionarAdminButton);
+        optionsPanel.add(Box.createVerticalStrut(20));
+        optionsPanel.add(removerAdminButton);
+        optionsPanel.add(Box.createVerticalStrut(20));
+        optionsPanel.add(cancelButton);
+
+        // Set the preferred size to make the box 2 times bigger
+        optionsPanel.setPreferredSize(new Dimension(optionsPanel.getPreferredSize().width, optionsPanel.getPreferredSize().height * 2));
+
+        JOptionPane.showOptionDialog(
+                this,
+                optionsPanel,
+                "Opções de Administrador",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                new Object[]{},
+                null
+        );
     }
 
     
