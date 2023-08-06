@@ -5,6 +5,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -179,23 +181,35 @@ public class Controlador extends JFrame {
         return false;
     }
 
-    /* Metodo para CRIAR Pagina inicial, exibida apos realizar login */
     private void createHomePanel() {
+    	
         homePanel = new JPanel();
-        homePanel.setLayout(new BorderLayout(100, 100));
+        homePanel.setLayout(new BorderLayout());
 
-        // Criar painel de botoes
-        JPanel buttonsPanel = new JPanel();
+        // Create the bottom panel for the "Área do Administrador" button
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton adminButton = new JButton("Área do Administrador");
+        adminButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EmDesenvolvimento();
+            }
+        });
+        bottomPanel.add(adminButton);
 
-        // Criar botão Listar Registros
+        // Add the bottom panel to the page panel
+        homePanel.add(bottomPanel, BorderLayout.SOUTH);
+
+        // Create the center panel for the main buttons
+        JPanel centerPanel = new JPanel(new GridLayout(0, 3, 20, 40)); // 3 columns, variable rows, 10px vertical and horizontal gaps
+
+        // Create botão Listar Registros
         JButton produtosButton = new JButton("Lista de Registros");
         produtosButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 mostrarProdutos();
             }
         });
-        // Adiciona o botao ao painel de botao
-        buttonsPanel.add(produtosButton);
+        centerPanel.add(produtosButton);
 
         // Criar botão Adicionar Registro
         JButton addProdutoButton = new JButton("Adicionar Registro");
@@ -204,38 +218,79 @@ public class Controlador extends JFrame {
                 adicionarCadaver();
             }
         });
-        // Adiciona o botao ao painel de botao
-        buttonsPanel.add(addProdutoButton);
+        centerPanel.add(addProdutoButton);
 
         // Criando botão atualizar cadaver
-        JButton atualizarButton = new JButton("Atualizar Registro");
-        atualizarButton.addActionListener(new ActionListener() {
+        JButton alterarButton = new JButton("Alterar Registro");
+        alterarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 EmDesenvolvimento();
             }
         });
-        // Adiciona o botao ao painel de botao
-        buttonsPanel.add(atualizarButton);
+        centerPanel.add(alterarButton);
 
-        // Adicionar painel de botoes ao painel da pagina criado anteriormente
-        homePanel.add(buttonsPanel, BorderLayout.NORTH);
-
-        // Novo painel de botoes admin
-        JPanel painelBotaoAdmin = new JPanel();
-        painelBotaoAdmin.setLayout(new BorderLayout(100, 100));
-
-        // Novo botao
-        JButton adminButton = new JButton("Area do Administrador");
-        adminButton.addActionListener(new ActionListener() {
+        // Novo botão Buscar cadaver
+        JButton buscarButton = new JButton("Buscar Registro por CPF");
+        buscarButton.setPreferredSize(new Dimension(50, 10));
+        buscarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 EmDesenvolvimento();
             }
         });
-        // Adiciona o botao ao painel de botao
-        painelBotaoAdmin.add(adminButton);
+        centerPanel.add(buscarButton);
+        
+        // Novo botão Apagar cadaver
+        JButton apagarButton = new JButton("Apagar Registro");
+        apagarButton.setPreferredSize(new Dimension(50, 10));
+        apagarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EmDesenvolvimento();
+            }
+        });
+        centerPanel.add(apagarButton);
+        
+        // Novo botão Situação cadaver
+        JButton situacaoButton = new JButton("Alterar Situação");
+        situacaoButton.setPreferredSize(new Dimension(50, 10));
+        situacaoButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EmDesenvolvimento();
+            }
+        });
+        centerPanel.add(situacaoButton);
+        
+        // Novo botão Buscar cadaver
+        JButton buscarButton2 = new JButton("Buscar Registro por CPF");
+        buscarButton2.setPreferredSize(new Dimension(50, 10));
+        buscarButton2.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EmDesenvolvimento();
+            }
+        });
+        centerPanel.add(buscarButton2);
+        
+        // Novo botão Procedimento no cadaver
+        JButton procedimentoButton = new JButton("Adicionar Procedimento");
+        procedimentoButton.setPreferredSize(new Dimension(50, 10));
+        procedimentoButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                EmDesenvolvimento();
+            }
+        });
+        centerPanel.add(procedimentoButton);
+        
+        // Novo botão Encerrar Sistema
+        JButton encerrarButton = new JButton("Encerrar Sessão");
+        encerrarButton.setPreferredSize(new Dimension(50, 10));
+        encerrarButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	sairDoSistema();
+            }
+        });
+        centerPanel.add(encerrarButton);
 
-        // Adiciona o painel de botao ao painel da pagina
-        homePanel.add(adminButton, BorderLayout.AFTER_LAST_LINE);
+        // Add the center panel to the page panel
+        homePanel.add(centerPanel, BorderLayout.CENTER);
     }
 
     /*
@@ -263,6 +318,10 @@ public class Controlador extends JFrame {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.getContentPane().add(scrollPane);
         dialog.pack();
+        
+        // Set the size of the dialog
+        dialog.setSize(900, 500);
+        
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -277,54 +336,157 @@ public class Controlador extends JFrame {
      * abre varias caixas de dialogo e adiciona um novo registro no arquivo
      */
     private void adicionarCadaver() {
-        String cpf = JOptionPane.showInputDialog(this, "Digite a identificação do corpo (CPF):");
-        if (cpf != null && !cpf.isEmpty()) {
-            String nome = JOptionPane.showInputDialog(this, "Digite o nome do corpo:");
-            if (nome != null && !nome.isEmpty()) {
-                String dataFalecimento = JOptionPane.showInputDialog(this,
-                        "Digite a data da morte do corpo:");
-                if (dataFalecimento != null && !dataFalecimento.isEmpty()) {
-                    /*
-                     * DateTimeFormatter formatter =
-                     * DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-                     * LocalDateTime data_horaFalecimento = LocalDateTime.parse(data_hora,
-                     * formatter);
-                     * /* formatar string data e hora para localdatetime
-                     */
-                    String horaFalecimento = JOptionPane.showInputDialog(this, "Digite a hora da morte do corpo:");
-                    if (horaFalecimento != null && !horaFalecimento.isEmpty()) {
-                        Cadaver corpo = new Cadaver(cpf, nome, dataFalecimento, horaFalecimento);
-                        cadaveres.add(corpo);
-                        escreverProdutosNoArquivo();
-                    }
+        JTextField cpfField = new JTextField(15);
+        JTextField nomeField = new JTextField(15);
+        JTextField pesoField = new JTextField(15);
+        JTextField dataFalecimentoField = new JTextField(15);
+        JTextField horaFalecimentoField = new JTextField(15);
+
+        // Set placeholder for CPF field
+        cpfField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (cpfField.getText().equals("Apenas Números")) {
+                    cpfField.setText("");
+                    cpfField.setForeground(Color.BLACK);
                 }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (cpfField.getText().isEmpty()) {
+                    cpfField.setText("Apenas Números");
+                    cpfField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+
+        // Set placeholder for Data de Falacimento field
+        dataFalecimentoField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (dataFalecimentoField.getText().equals("DD/MM/YYYY")) {
+                    dataFalecimentoField.setText("");
+                    dataFalecimentoField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (dataFalecimentoField.getText().isEmpty()) {
+                    dataFalecimentoField.setText("DD/MM/YYYY");
+                    dataFalecimentoField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        dataFalecimentoField.setText("DD/MM/YYYY");
+        dataFalecimentoField.setForeground(Color.GRAY);
+
+        // Set placeholder for Hora de Falacimento field
+        horaFalecimentoField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (horaFalecimentoField.getText().equals("HH:MM")) {
+                    horaFalecimentoField.setText("");
+                    horaFalecimentoField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (horaFalecimentoField.getText().isEmpty()) {
+                    horaFalecimentoField.setText("HH:MM");
+                    horaFalecimentoField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        horaFalecimentoField.setText("HH:MM");
+        horaFalecimentoField.setForeground(Color.GRAY);
+
+        JPanel panel = new JPanel(new GridLayout(0, 2));
+        panel.add(new JLabel("CPF:"));
+        panel.add(cpfField);
+        panel.add(new JLabel("Nome:"));
+        panel.add(nomeField);
+        panel.add(new JLabel("Peso:"));
+        panel.add(pesoField);
+        panel.add(new JLabel("Data da Morte:"));
+        panel.add(dataFalecimentoField);
+        panel.add(new JLabel("Hora da Morte:"));
+        panel.add(horaFalecimentoField);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Adicionar Cadáver", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String cpf = cpfField.getText().replaceAll("[^0-9]", ""); // Remove non-numeric characters from the input
+            String nome = nomeField.getText();
+            String peso = pesoField.getText();
+            String dataFalecimento = dataFalecimentoField.getText();
+            String horaFalecimento = horaFalecimentoField.getText();
+
+            if (confirmarEntrada(cpf, nome, peso, dataFalecimento, horaFalecimento)) {
+                // Show a confirmation dialog before adding the record
+                String message = "Deseja adicionar o seguinte cadáver?\n\n"
+                        + "CPF: " + formatCPF(cpf) + "\n"
+                        + "Nome: " + nome + "\n"
+                        + "Peso: " + peso + "\n"
+                        + "Data da Morte: " + dataFalecimento + "\n"
+                        + "Hora da Morte: " + horaFalecimento + "\n";
+
+                int confirmation = JOptionPane.showConfirmDialog(this, message, "Confirmação", JOptionPane.YES_NO_OPTION);
+
+                if (confirmation == JOptionPane.YES_OPTION) {
+                    Cadaver corpo = new Cadaver(formatCPF(cpf), nome, peso, dataFalecimento, horaFalecimento);
+                    cadaveres.add(corpo);
+                    escreverProdutosNoArquivo();
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Preencha todos os campos antes de adicionar o cadáver.");
             }
         }
     }
 
+    private String formatCPF(String cpf) {
+        return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "." + cpf.substring(6, 9) + "-" + cpf.substring(9);
+    }
+    
+    private boolean confirmarEntrada(String cpf, String nome, String peso, String dataFalecimento, String horaFalecimento)
+    {
+    	if(cpf.length() < 10 || cpf.isEmpty())
+    	{
+    		return false;
+    	}
+    	
+    	if(nome.isEmpty() && peso.isEmpty() && dataFalecimento.isEmpty() && horaFalecimento.isEmpty())
+    	{
+    		return false;
+    	}
+    	
+    	return true;
+    }
+
+
     /* Metodo auxiliar para escrever dados no arquivo .csv */
     private void escreverProdutosNoArquivo() {
         try (FileWriter writer = new FileWriter(DATA_FILE_STRING, true)) {
-            Cadaver produto = cadaveres.get(cadaveres.size() - 1);
-            writer.write(produto.toString());
+            Cadaver corpo = cadaveres.get(cadaveres.size() - 1);
+            writer.write(corpo.toString());
             writer.write("\n");
             writer.flush();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Error writing to produtos file: " + e.getMessage());
         }
     }
-
     /* Metodo auxiliar para ler todos os registros do arquivo .csv */
     private void lerProdutosDoArquivo() {
         cadaveres.clear();
         try {
             List<String> linhas = Files.readAllLines(Paths.get(DATA_FILE_STRING));
             for (String linha : linhas) {
-                String[] campos = linha.split(";");
-                if (campos.length >= 4) {
-                    Cadaver produto = new Cadaver(campos[0], campos[1], campos[2], campos[3]);
-                    cadaveres.add(produto);
-                }
+            	Cadaver corpo = Cadaver.parseCadaver(linha);
+            	cadaveres.add(corpo);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Error reading produtos file: " + e.getMessage());
@@ -333,6 +495,16 @@ public class Controlador extends JFrame {
 
     private void EmDesenvolvimento() {
         JOptionPane.showMessageDialog(this, "Em Desenvolvimento...");
+    }
+    
+    private void sairDoSistema() {
+        int confirmation = JOptionPane.showConfirmDialog(this, "Deseja sair do sistema?", "Confirmação", JOptionPane.YES_NO_OPTION);
+        
+        if (confirmation == JOptionPane.YES_OPTION) {
+            // Implement here the code to exit the system
+            // For example, you can use System.exit(0) to terminate the application
+            System.exit(0);
+        }
     }
 
     public static void main(String[] args) {

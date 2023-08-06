@@ -18,13 +18,22 @@ public class Cadaver {
         this.peso = 0;
     }
     
-    public Cadaver(String cpf, String nome, String dataFalecimento, String horaFalecimento, double peso) {
+    public Cadaver(String cpf, String nome, double peso, String dataFalecimento, String horaFalecimento) {
         this.cpf = cpf;
         this.nome = nome;
         this.dataFalecimento = dataFalecimento;
         this.horaFalecimento = horaFalecimento;
         this.situacao = "Recebido";
         this.peso = peso;
+    }
+    
+    public Cadaver(String cpf, String nome, String peso, String dataFalecimento, String horaFalecimento) {
+        this.cpf = cpf;
+        this.nome = nome;
+        this.dataFalecimento = dataFalecimento;
+        this.horaFalecimento = horaFalecimento;
+        this.situacao = "Recebido";
+        this.peso = Double.parseDouble(peso);
     }
     
     public Cadaver(String cpf, String nome, double peso) {
@@ -105,11 +114,35 @@ public class Cadaver {
     public void setHoraFalecimento(String horaFalecimento) {
         this.horaFalecimento = horaFalecimento;
     }
+    
+    public static Cadaver parseCadaver(String linha) {
+        String campos[] = linha.split(";");
+        if (campos.length >= 6) {
+            Cadaver aux = new Cadaver();
+            aux.setCpf(campos[0]);
+            aux.setNome(campos[1]);
+            aux.setPeso(Double.parseDouble(campos[2]));
+            aux.setDataFalecimento(campos[3]);
+            aux.setHoraFalecimento(campos[4]);
+            aux.setSituacao(campos[5]);
+            
+
+            // Se houver mais campos, você pode defini-los aqui conforme a necessidade.
+            // Exemplo: aux.setCampoExtra(campos[3]);
+
+            return aux;
+        } else {
+            // Caso a linha não tenha informações suficientes para o Cadaver.
+            // Você pode retornar null ou lançar uma exceção, dependendo da sua lógica.
+            return null;
+        }
+    }
+
 
     @Override
     public String toString() {
-        return this.cpf + ";" + this.nome + ";" + this.dataFalecimento + ";" + this.horaFalecimento + ";"
-                + this.peso + ";" + this.situacao;
+        return this.cpf + ";" + this.nome + ";" + this.peso + ";" 
+    + this.dataFalecimento + ";" + this.horaFalecimento + ";" + this.situacao;
     }
 
 }
