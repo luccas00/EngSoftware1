@@ -125,15 +125,8 @@ public class Cadaver {
             aux.setDataFalecimento(campos[3]);
             aux.setHoraFalecimento(campos[4]);
             aux.setSituacao(campos[5]);
-            
-
-            // Se houver mais campos, você pode defini-los aqui conforme a necessidade.
-            // Exemplo: aux.setCampoExtra(campos[3]);
-
             return aux;
         } else {
-            // Caso a linha não tenha informações suficientes para o Cadaver.
-            // Você pode retornar null ou lançar uma exceção, dependendo da sua lógica.
             return null;
         }
     }

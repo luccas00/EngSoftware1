@@ -2,6 +2,9 @@ package principal;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+
+import auxiliar.Criptografia;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,7 +15,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import common.*;
 
@@ -25,11 +31,11 @@ public class Controlador extends JFrame {
     private JPanel mainPanel;
     private JPanel homePanel;
     private CardLayout cardLayout;
-
+    private static String nomeUsuarioLogado = "";
+    
     public Controlador() {
 
-        // Parametros gerados pelo Chat GPT
-        setTitle("Gerenciamento Necroterio");
+        setTitle("Gerenciamento Necroterio - User: " + nomeUsuarioLogado);
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -37,7 +43,6 @@ public class Controlador extends JFrame {
         // Esse array list recebe todos os registros do arquivo quando o programa é iniciado
         cadaveres = new ArrayList<>();
 
-        // Variavies do Chat GPT
         mainPanel = new JPanel();
         cardLayout = new CardLayout();
         mainPanel.setLayout(cardLayout);
@@ -54,8 +59,9 @@ public class Controlador extends JFrame {
 
         if (realizarLogin()) {
             Inicializar(); // Verifica os arquivos de dados
-            lerProdutosDoArquivo(); // Essa funçao usa a variavel List<Cadaver> cadaveres
+            lerRegistrosDoArquivo(); // Essa funçao usa a variavel List<Cadaver> cadaveres
             showHomePage(); // Exibe a home page
+            setTitle("Gerenciamento Necroterio - Usuário: " + nomeUsuarioLogado);
             setVisible(true);
 
         } else {
@@ -82,8 +88,9 @@ public class Controlador extends JFrame {
                     if (nome != null && !nome.isEmpty()) {
                         String senha = JOptionPane.showInputDialog(this, "Digite sua senha:");
                         if (senha != null && !senha.isEmpty()) {
+                        	String key = Criptografia.generateGUID();
                             try (FileWriter writer = new FileWriter(LOGIN_FILE, true)) {
-                                writer.write(nome + ";" + senha);
+                                writer.write(nome + ";" + Criptografia.encrypt(senha, key) + ";" + key);
                                 writer.write("\n");
                                 writer.flush();
                             } catch (IOException e) {
@@ -136,7 +143,7 @@ public class Controlador extends JFrame {
         }
     }
 
-    /* Metodo para realizar Login - 100% Chat GPT */
+    /* Metodo para realizar Login*/
     private boolean realizarLogin() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BorderLayout());
@@ -169,7 +176,8 @@ public class Controlador extends JFrame {
                 List<String> credentials = Files.readAllLines(Paths.get(LOGIN_FILE));
                 for (String line : credentials) {
                     String[] fields = line.split(";");
-                    if (fields.length == 2 && fields[0].equals(login) && fields[1].equals(password)) {
+                    if (autenticarCriptografia(login, password)) {
+                    	nomeUsuarioLogado = login;
                         return true;
                     }
                 }
@@ -180,7 +188,81 @@ public class Controlador extends JFrame {
 
         return false;
     }
+    
+    private boolean autenticarAdmin() {
+        JPanel loginPanel = new JPanel();
+        loginPanel.setLayout(new BorderLayout());
 
+        JLabel titleLabel = new JLabel("Autenticação de Administrador");
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        loginPanel.add(titleLabel, BorderLayout.NORTH);
+
+        JPanel formPanel = new JPanel();
+        formPanel.setLayout(new GridLayout(2, 2));
+
+        JLabel loginLabel = new JLabel("Login:");
+        JTextField loginField = new JTextField();
+        formPanel.add(loginLabel);
+        formPanel.add(loginField);
+
+        JLabel passwordLabel = new JLabel("Password:");
+        JPasswordField passwordField = new JPasswordField();
+        formPanel.add(passwordLabel);
+        formPanel.add(passwordField);
+
+        loginPanel.add(formPanel, BorderLayout.CENTER);
+
+        int result = JOptionPane.showConfirmDialog(null, loginPanel, "Autenticação de Administrador", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            String login = loginField.getText();
+            String password = new String(passwordField.getPassword());
+
+            try {
+                List<String> adminCredentials = Files.readAllLines(Paths.get(LOGIN_FILE));
+                for (String line : adminCredentials) {
+                    String[] fields = line.split(";");
+                    if (autenticarCriptografia(login, password)) {
+                    	JOptionPane.showMessageDialog(this, "Sucesso...");
+                        return true;
+                    }
+                }
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Error reading the admin credentials file: " + e.getMessage());
+            }
+        }
+        JOptionPane.showMessageDialog(this, "Falha...");
+        return false;
+    }
+
+    private boolean autenticarCriptografia(String login, String senha) {
+        try {
+            List<String> adminCredentials = Files.readAllLines(Paths.get(LOGIN_FILE));
+            for (String line : adminCredentials) {
+                String[] fields = line.split(";");
+                if (fields.length == 3 && fields[0].equals(login)) {
+                    String storedEncryptedPassword = fields[1];
+                    String storedKey = fields[2];
+                    String encryptedPassword = "";
+                    try
+                    {
+                    	encryptedPassword = Criptografia.encrypt(senha, storedKey);
+                    }
+                    catch (Exception e) {
+                    	JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage());
+					}
+                    
+                    if (storedEncryptedPassword.equals(encryptedPassword)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error reading the admin credentials file: " + e.getMessage());
+        }
+        return false;
+    }
+
+    
     private void createHomePanel() {
     	
         homePanel = new JPanel();
@@ -206,7 +288,7 @@ public class Controlador extends JFrame {
         JButton produtosButton = new JButton("Lista de Registros");
         produtosButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                mostrarProdutos();
+                mostrarCadaver();
             }
         });
         centerPanel.add(produtosButton);
@@ -230,11 +312,11 @@ public class Controlador extends JFrame {
         centerPanel.add(alterarButton);
 
         // Novo botão Buscar cadaver
-        JButton buscarButton = new JButton("Buscar Registro por CPF");
+        JButton buscarButton = new JButton("Buscar Registro");
         buscarButton.setPreferredSize(new Dimension(50, 10));
         buscarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+                buscarRegistros();
             }
         });
         centerPanel.add(buscarButton);
@@ -244,7 +326,7 @@ public class Controlador extends JFrame {
         apagarButton.setPreferredSize(new Dimension(50, 10));
         apagarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+                apagarRegistroPorCPF();
             }
         });
         centerPanel.add(apagarButton);
@@ -260,14 +342,14 @@ public class Controlador extends JFrame {
         centerPanel.add(situacaoButton);
         
         // Novo botão Buscar cadaver
-        JButton buscarButton2 = new JButton("Buscar Registro por CPF");
-        buscarButton2.setPreferredSize(new Dimension(50, 10));
-        buscarButton2.addActionListener(new ActionListener() {
+        JButton ordenarButton = new JButton("Ordenar Registros");
+        ordenarButton.setPreferredSize(new Dimension(50, 10));
+        ordenarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+                listaOrdenada();
             }
         });
-        centerPanel.add(buscarButton2);
+        centerPanel.add(ordenarButton);
         
         // Novo botão Procedimento no cadaver
         JButton procedimentoButton = new JButton("Adicionar Procedimento");
@@ -297,8 +379,8 @@ public class Controlador extends JFrame {
      * Metodo executado quando clicado no botao LISTAR REGISTROS
      * abre uma nova tela e exibe todos os registros do arquivo
      */
-    private void mostrarProdutos() {
-        lerProdutosDoArquivo(); // Read the products from the file
+    private void mostrarCadaver() {
+        lerRegistrosDoArquivo(); // Read the products from the file
 
         // Create the table model
         DefaultTableModel tableModel = new DefaultTableModel();
@@ -306,6 +388,62 @@ public class Controlador extends JFrame {
 
         // Populate the table model with data from the cadaver list
         for (Cadaver cadaver : cadaveres) {
+            tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
+        }
+
+        // Create the table and scroll pane
+        JTable table = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Create the dialog and display the table
+        JDialog dialog = new JDialog(this, "Cadaveres", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.getContentPane().add(scrollPane);
+        dialog.pack();
+        
+        // Set the size of the dialog
+        dialog.setSize(900, 500);
+        
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+    
+    private void mostrarCadaverOrdenado() {
+
+        // Create the table model
+        DefaultTableModel tableModel = new DefaultTableModel();
+        tableModel.setColumnIdentifiers(new Object[]{"CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
+
+        // Populate the table model with data from the cadaver list
+        for (Cadaver cadaver : cadaveres) {
+            tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
+        }
+
+        // Create the table and scroll pane
+        JTable table = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        // Create the dialog and display the table
+        JDialog dialog = new JDialog(this, "Cadaveres", true);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        dialog.getContentPane().add(scrollPane);
+        dialog.pack();
+        
+        // Set the size of the dialog
+        dialog.setSize(900, 500);
+        
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+    
+    private void mostrarCadaverOrdenado(List<Cadaver> searchResults) {
+
+        // Create the table model
+        DefaultTableModel tableModel = new DefaultTableModel();
+        tableModel.setColumnIdentifiers(new Object[]{"CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
+
+        // Populate the table model with data from the cadaver list
+        for (Cadaver cadaver : searchResults) {
             tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
         }
 
@@ -440,7 +578,7 @@ public class Controlador extends JFrame {
                 if (confirmation == JOptionPane.YES_OPTION) {
                     Cadaver corpo = new Cadaver(formatCPF(cpf), nome, peso, dataFalecimento, horaFalecimento);
                     cadaveres.add(corpo);
-                    escreverProdutosNoArquivo();
+                    escreverRegistrosNoArquivo();
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Preencha todos os campos antes de adicionar o cadáver.");
@@ -467,9 +605,8 @@ public class Controlador extends JFrame {
     	return true;
     }
 
-
     /* Metodo auxiliar para escrever dados no arquivo .csv */
-    private void escreverProdutosNoArquivo() {
+    private void escreverRegistrosNoArquivo() {
         try (FileWriter writer = new FileWriter(DATA_FILE_STRING, true)) {
             Cadaver corpo = cadaveres.get(cadaveres.size() - 1);
             writer.write(corpo.toString());
@@ -480,7 +617,7 @@ public class Controlador extends JFrame {
         }
     }
     /* Metodo auxiliar para ler todos os registros do arquivo .csv */
-    private void lerProdutosDoArquivo() {
+    private void lerRegistrosDoArquivo() {
         cadaveres.clear();
         try {
             List<String> linhas = Files.readAllLines(Paths.get(DATA_FILE_STRING));
@@ -507,6 +644,165 @@ public class Controlador extends JFrame {
         }
     }
 
+    
+
+    public void listaOrdenada() {
+        // Show the option dialog with the buttons
+        int option = JOptionPane.showOptionDialog(
+                this,
+                "Escolha o parâmetro de ordenação",
+                "Ordenar Cadáveres",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                new Object[]{"Nome", "CPF"},
+                null
+        );
+
+        // Sort the cadaveres list based on the user's choice
+        if (option == 0) {
+            // Sort by name
+            Collections.sort(cadaveres, Comparator.comparing(Cadaver::getNome));
+        } else if (option == 1) {
+            // Sort by CPF
+            Collections.sort(cadaveres, Comparator.comparing(Cadaver::getCpf));
+        } else {
+            // If the user closes the dialog or doesn't make a selection, return
+            return;
+        }
+
+        // Display the ordered list using the mostrarCadaver() method
+        mostrarCadaverOrdenado();
+    }
+    
+    public void buscarRegistros() {
+        // Show the option dialog with the buttons
+        int option = JOptionPane.showOptionDialog(
+                this,
+                "Escolha o parâmetro de busca",
+                "Buscar Cadáveres",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                new Object[]{"Nome", "CPF"},
+                null
+        );
+
+        // Check the user's choice and perform the search
+        if (option == 0) {
+            buscarRegistrosPorNome();
+        } else if (option == 1) {
+            buscarRegistrosPorCPF();
+        } else {
+            // If the user closes the dialog or doesn't make a selection, return
+            return;
+        }
+    }
+    
+    public void buscarRegistrosPorNome() {
+        // Ask the user for the search query
+        String searchQuery = JOptionPane.showInputDialog(this, "Digite o Nome para buscar:");
+
+        // Create lists to store the search results
+        List<Cadaver> searchResults = new ArrayList<>();
+
+        // Perform the search based on the user's choice (name or CPF)
+        for (Cadaver cadaver : cadaveres) {
+            if (cadaver.getNome().equalsIgnoreCase(searchQuery)) {
+                searchResults.add(cadaver);
+            }
+        }
+
+        // Check if any results were found
+        if (searchResults.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
+            return;
+        }
+        
+        // Display the search results using the mostrarCadaverOrdenado() method
+        mostrarCadaverOrdenado(searchResults);
+    }
+
+    public void buscarRegistrosPorCPF() {
+        // Ask the user for the search query
+        String searchQuery = JOptionPane.showInputDialog(this, "Digite o CPF para buscar:");
+
+        // Create lists to store the search results
+        List<Cadaver> searchResults = new ArrayList<>();
+
+        // Perform the search based on the user's choice (name or CPF)
+        for (Cadaver cadaver : cadaveres) {
+            if (cadaver.getCpf().equals(searchQuery)) {
+                searchResults.add(cadaver);
+            }
+        }
+
+        // Check if any results were found
+        if (searchResults.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
+            return;
+        }
+        
+        // Display the search results using the mostrarCadaverOrdenado() method
+        mostrarCadaverOrdenado(searchResults);
+    }
+    
+    
+    public void apagarRegistroPorCPF() {
+        String searchQuery = JOptionPane.showInputDialog(this, "Digite o CPF para apagar o registro:");
+        if (searchQuery == null) {
+            // User canceled the input or closed the dialog
+            return;
+        }
+        searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove non-numeric characters
+        searchQuery = formatCPF(searchQuery);
+        
+        // Read all lines from the CSV file
+        try {
+            List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
+            boolean found = false;
+
+            // Create a temporary list to store lines that don't match the searched CPF
+            List<String> updatedLines = new ArrayList<>();
+            String linha = "";
+            
+            // Search for the record with the given CPF and remove it from the lines list
+            for (String line : lines) {
+                if (!line.startsWith(searchQuery + ";")) {
+                    updatedLines.add(line);
+                } else {
+                    found = true;
+                    linha = line;
+                }
+            }
+
+            // If the CPF is not found, display a message and return
+            if (!found) {
+                JOptionPane.showMessageDialog(this, "CPF não encontrado no arquivo.");
+                return;
+            }
+            
+            Cadaver corpo = Cadaver.parseCadaver(linha);
+
+            // Confirm the deletion before proceeding
+            int confirmation = JOptionPane.showConfirmDialog(this, "Deseja apagar o registro com o CPF: " + searchQuery + "?" + 
+            "\nNome: " + corpo.getNome() + "\nSituação: " + corpo.getSituacao(), "Confirmação", JOptionPane.YES_NO_OPTION);
+            if (confirmation == JOptionPane.YES_OPTION) {
+            	if (autenticarAdmin())
+            	{
+            		// Write the updated data back to the CSV file
+                    Files.write(Paths.get(common.Paths.getDataPath()), updatedLines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+
+                    JOptionPane.showMessageDialog(this, "Registro apagado com sucesso!");
+            	}
+            }
+            
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao acessar o arquivo: " + e.getMessage());
+        }
+    }
+
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
