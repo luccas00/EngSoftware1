@@ -17,12 +17,12 @@ public class Paths {
 
 	public static String getDataFolderPath()
 	{
-		return desktopPath + "/Data";
+		return desktopPath + "/Datas";
 	}
 	
 	public static String getDataPath()
 	{
-		return desktopPath + "/Data/data.csv";
+		return desktopPath + "/Datas/datasss.csv";
 	}
 	
 }

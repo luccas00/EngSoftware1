@@ -32,7 +32,7 @@ public class Controlador extends JFrame {
     private JPanel homePanel;
     private CardLayout cardLayout;
     private static String nomeUsuarioLogado = "";
-    
+
     public Controlador() {
 
         setTitle("Gerenciamento Necroterio - User: " + nomeUsuarioLogado);
@@ -40,7 +40,8 @@ public class Controlador extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Esse array list recebe todos os registros do arquivo quando o programa é iniciado
+        // Esse array list recebe todos os registros do arquivo quando o programa é
+        // iniciado
         cadaveres = new ArrayList<>();
 
         mainPanel = new JPanel();
@@ -88,7 +89,7 @@ public class Controlador extends JFrame {
                     if (nome != null && !nome.isEmpty()) {
                         String senha = JOptionPane.showInputDialog(this, "Digite sua senha:");
                         if (senha != null && !senha.isEmpty()) {
-                        	String key = Criptografia.generateGUID();
+                            String key = Criptografia.generateGUID();
                             try (FileWriter writer = new FileWriter(LOGIN_FILE, true)) {
                                 writer.write(nome + ";" + Criptografia.encrypt(senha, key) + ";" + key);
                                 writer.write("\n");
@@ -115,7 +116,7 @@ public class Controlador extends JFrame {
     private void Inicializar() {
         String folderPath = common.Paths.getDataFolderPath();
         File folder = new File(folderPath);
-        String dataPath = folderPath + "/data.csv";
+        String dataPath = folderPath + "/datasss.csv";
         File data = new File(dataPath);
 
         if (!folder.exists()) {
@@ -143,7 +144,7 @@ public class Controlador extends JFrame {
         }
     }
 
-    /* Metodo para realizar Login*/
+    /* Metodo para realizar Login */
     private boolean realizarLogin() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BorderLayout());
@@ -177,7 +178,7 @@ public class Controlador extends JFrame {
                 for (String line : credentials) {
                     String[] fields = line.split(";");
                     if (autenticarCriptografia(login, password)) {
-                    	nomeUsuarioLogado = login;
+                        nomeUsuarioLogado = login;
                         return true;
                     }
                 }
@@ -188,7 +189,7 @@ public class Controlador extends JFrame {
 
         return false;
     }
-    
+
     private boolean autenticarAdmin() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BorderLayout());
@@ -212,7 +213,8 @@ public class Controlador extends JFrame {
 
         loginPanel.add(formPanel, BorderLayout.CENTER);
 
-        int result = JOptionPane.showConfirmDialog(null, loginPanel, "Autenticação de Administrador", JOptionPane.OK_CANCEL_OPTION);
+        int result = JOptionPane.showConfirmDialog(null, loginPanel, "Autenticação de Administrador",
+                JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             String login = loginField.getText();
             String password = new String(passwordField.getPassword());
@@ -222,7 +224,7 @@ public class Controlador extends JFrame {
                 for (String line : adminCredentials) {
                     String[] fields = line.split(";");
                     if (autenticarCriptografia(login, password)) {
-                    	JOptionPane.showMessageDialog(this, "Sucesso...");
+                        JOptionPane.showMessageDialog(this, "Sucesso...");
                         return true;
                     }
                 }
@@ -243,14 +245,12 @@ public class Controlador extends JFrame {
                     String storedEncryptedPassword = fields[1];
                     String storedKey = fields[2];
                     String encryptedPassword = "";
-                    try
-                    {
-                    	encryptedPassword = Criptografia.encrypt(senha, storedKey);
+                    try {
+                        encryptedPassword = Criptografia.encrypt(senha, storedKey);
+                    } catch (Exception e) {
+                        JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage());
                     }
-                    catch (Exception e) {
-                    	JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage());
-					}
-                    
+
                     if (storedEncryptedPassword.equals(encryptedPassword)) {
                         return true;
                     }
@@ -261,9 +261,9 @@ public class Controlador extends JFrame {
         }
         return false;
     }
-    
+
     private void createHomePanel() {
-    	
+
         homePanel = new JPanel();
         homePanel.setLayout(new BorderLayout());
 
@@ -272,10 +272,9 @@ public class Controlador extends JFrame {
         JButton adminButton = new JButton("Área do Administrador");
         adminButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	if (autenticarAdmin())
-            	{
-            		abrirOpcoesAdmin();
-            	}
+                if (autenticarAdmin()) {
+                    abrirOpcoesAdmin();
+                }
             }
         });
         bottomPanel.add(adminButton);
@@ -283,7 +282,8 @@ public class Controlador extends JFrame {
         homePanel.add(bottomPanel, BorderLayout.SOUTH);
 
         // Create the center panel for the main buttons
-        JPanel centerPanel = new JPanel(new GridLayout(0, 3, 20, 40)); // 3 columns, variable rows, 10px vertical and horizontal gaps
+        JPanel centerPanel = new JPanel(new GridLayout(0, 3, 20, 40)); // 3 columns, variable rows, 10px vertical and
+                                                                       // horizontal gaps
 
         // Create botão Listar Registros
         JButton produtosButton = new JButton("Lista de Registros");
@@ -307,7 +307,7 @@ public class Controlador extends JFrame {
         JButton alterarButton = new JButton("Alterar Registro");
         alterarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+                atualizarRegistroPorCPF();
             }
         });
         centerPanel.add(alterarButton);
@@ -321,7 +321,7 @@ public class Controlador extends JFrame {
             }
         });
         centerPanel.add(buscarButton);
-        
+
         // Novo botão Apagar cadaver
         JButton apagarButton = new JButton("Apagar Registro");
         apagarButton.setPreferredSize(new Dimension(50, 10));
@@ -331,17 +331,17 @@ public class Controlador extends JFrame {
             }
         });
         centerPanel.add(apagarButton);
-        
+
         // Novo botão Situação cadaver
         JButton situacaoButton = new JButton("Alterar Situação");
         situacaoButton.setPreferredSize(new Dimension(50, 10));
         situacaoButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                EmDesenvolvimento();
+                alterarSituacaoCadaver();
             }
         });
         centerPanel.add(situacaoButton);
-        
+
         // Novo botão Buscar cadaver
         JButton ordenarButton = new JButton("Ordenar Registros");
         ordenarButton.setPreferredSize(new Dimension(50, 10));
@@ -351,7 +351,7 @@ public class Controlador extends JFrame {
             }
         });
         centerPanel.add(ordenarButton);
-        
+
         // Novo botão Procedimento no cadaver
         JButton procedimentoButton = new JButton("Adicionar Procedimento");
         procedimentoButton.setPreferredSize(new Dimension(50, 10));
@@ -361,13 +361,13 @@ public class Controlador extends JFrame {
             }
         });
         centerPanel.add(procedimentoButton);
-        
+
         // Novo botão Encerrar Sistema
         JButton encerrarButton = new JButton("Encerrar Sessão");
         encerrarButton.setPreferredSize(new Dimension(50, 10));
         encerrarButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-            	sairDoSistema();
+                sairDoSistema();
             }
         });
         centerPanel.add(encerrarButton);
@@ -385,11 +385,13 @@ public class Controlador extends JFrame {
 
         // Create the table model
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.setColumnIdentifiers(new Object[]{"CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
+        tableModel.setColumnIdentifiers(
+                new Object[] { "CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
 
         // Populate the table model with data from the cadaver list
         for (Cadaver cadaver : cadaveres) {
-            tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
+            tableModel.addRow(new Object[] { cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(),
+                    cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
         }
 
         // Create the table and scroll pane
@@ -401,23 +403,25 @@ public class Controlador extends JFrame {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.getContentPane().add(scrollPane);
         dialog.pack();
-        
+
         // Set the size of the dialog
         dialog.setSize(900, 500);
-        
+
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
-    
+
     private void mostrarCadaverOrdenado() {
 
         // Create the table model
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.setColumnIdentifiers(new Object[]{"CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
+        tableModel.setColumnIdentifiers(
+                new Object[] { "CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
 
         // Populate the table model with data from the cadaver list
         for (Cadaver cadaver : cadaveres) {
-            tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
+            tableModel.addRow(new Object[] { cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(),
+                    cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
         }
 
         // Create the table and scroll pane
@@ -429,23 +433,25 @@ public class Controlador extends JFrame {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.getContentPane().add(scrollPane);
         dialog.pack();
-        
+
         // Set the size of the dialog
         dialog.setSize(900, 500);
-        
+
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
-    
+
     private void mostrarCadaverOrdenado(List<Cadaver> searchResults) {
 
         // Create the table model
         DefaultTableModel tableModel = new DefaultTableModel();
-        tableModel.setColumnIdentifiers(new Object[]{"CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
+        tableModel.setColumnIdentifiers(
+                new Object[] { "CPF", "Nome", "Peso", "Data da morte", "Hora da morte", "Situação" });
 
         // Populate the table model with data from the cadaver list
         for (Cadaver cadaver : searchResults) {
-            tableModel.addRow(new Object[]{cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(), cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
+            tableModel.addRow(new Object[] { cadaver.getCpf(), cadaver.getNome(), cadaver.getPeso(),
+                    cadaver.getDataFalecimento(), cadaver.getHoraFalecimento(), cadaver.getSituacao() });
         }
 
         // Create the table and scroll pane
@@ -457,10 +463,10 @@ public class Controlador extends JFrame {
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.getContentPane().add(scrollPane);
         dialog.pack();
-        
+
         // Set the size of the dialog
         dialog.setSize(900, 500);
-        
+
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -574,7 +580,8 @@ public class Controlador extends JFrame {
                         + "Data da Morte: " + dataFalecimento + "\n"
                         + "Hora da Morte: " + horaFalecimento + "\n";
 
-                int confirmation = JOptionPane.showConfirmDialog(this, message, "Confirmação", JOptionPane.YES_NO_OPTION);
+                int confirmation = JOptionPane.showConfirmDialog(this, message, "Confirmação",
+                        JOptionPane.YES_NO_OPTION);
 
                 if (confirmation == JOptionPane.YES_OPTION) {
                     Cadaver corpo = new Cadaver(formatCPF(cpf), nome, peso, dataFalecimento, horaFalecimento);
@@ -587,23 +594,109 @@ public class Controlador extends JFrame {
         }
     }
 
+    /*--------Metodo para ATUALIZAR cadáver--------*/
+    public void atualizarRegistroPorCPF() {
+        JTextField cpfField = new JTextField(15);
+
+        cpfField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (cpfField.getText().equals("Apenas Números")) {
+                    cpfField.setText("");
+                    cpfField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (cpfField.getText().isEmpty()) {
+                    cpfField.setText("Apenas Números");
+                    cpfField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Digite o CPF para alterar dados do registro:"));
+        panel.add(cpfField);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
+
+        String searchQuery = cpfField.getText();
+
+        if (searchQuery == null || searchQuery.equals("Apenas Números")) {
+            return;
+        }
+
+        if (result == JOptionPane.OK_OPTION) {
+            searchQuery = searchQuery.replaceAll("[^0-9]", "");
+            searchQuery = formatCPF(searchQuery);
+
+            // Read all lines from the file and update the datas fields
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
+                boolean found = false;
+
+                // Update the fields for the record with the given CPF
+                for (int i = 0; i < lines.size(); i++) {
+                    String line = lines.get(i);
+                    if (line.startsWith(searchQuery + ";")) {
+                        String[] parts = line.split(";");
+                        //String nome = parts[1];
+                        //String novaSituacao = JOptionPane.showInputDialog(null, "Nova Situação para " + nome + ":");
+                        String updatedName = JOptionPane.showInputDialog(this, "Digite o novo nome:", parts[1]);
+                        String updatedWeight = JOptionPane.showInputDialog(this, "Digite o novo peso:", parts[2]);
+                        String updatedDeathDate = JOptionPane.showInputDialog(this, "Digite a nova data de óbito:", parts[3]);
+                        String updatedTimeDate = JOptionPane.showInputDialog(this, "Digite a nova hora de óbito:", parts[4]);
+
+                        if (updatedName != null && !updatedName.isEmpty() && updatedWeight != null && !updatedWeight.isEmpty() && updatedDeathDate != null && !updatedDeathDate.isEmpty() && updatedTimeDate != null && !updatedTimeDate.isEmpty()) {
+                            parts[1] = updatedName;
+                            parts[2] = updatedWeight;
+                            parts[3] = updatedDeathDate;
+                            parts[4] = updatedTimeDate;
+                            lines.set(i, String.join(";", parts));
+                            found = true;
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Os registros não podem ser vazios.");
+                        }
+                        break;
+                    }
+                }
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "CPF não encontrado no arquivo.");
+                    return;
+                }
+
+                Files.write(Paths.get(common.Paths.getDataPath()), lines, StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+
+                JOptionPane.showMessageDialog(null, "Registro atualizado com sucesso!");
+
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Erro ao acessar o arquivo: " + e.getMessage());
+            }
+        }
+    }
+
+    /*--------FIM do metodo para ATUALIZAR cadáver--------*/
+
     private String formatCPF(String cpf) {
         return cpf.substring(0, 3) + "." + cpf.substring(3, 6) + "." + cpf.substring(6, 9) + "-" + cpf.substring(9);
     }
-    
-    private boolean confirmarEntrada(String cpf, String nome, String peso, String dataFalecimento, String horaFalecimento)
-    {
-    	if(cpf.length() < 10 || cpf.isEmpty())
-    	{
-    		return false;
-    	}
-    	
-    	if(nome.isEmpty() && peso.isEmpty() && dataFalecimento.isEmpty() && horaFalecimento.isEmpty())
-    	{
-    		return false;
-    	}
-    	
-    	return true;
+
+    private boolean confirmarEntrada(String cpf, String nome, String peso, String dataFalecimento,
+            String horaFalecimento) {
+        if (cpf.length() < 10 || cpf.isEmpty()) {
+            return false;
+        }
+
+        if (nome.isEmpty() && peso.isEmpty() && dataFalecimento.isEmpty() && horaFalecimento.isEmpty()) {
+            return false;
+        }
+
+        return true;
     }
 
     /* Metodo auxiliar para escrever dados no arquivo .csv */
@@ -617,14 +710,15 @@ public class Controlador extends JFrame {
             JOptionPane.showMessageDialog(this, "Error writing to produtos file: " + e.getMessage());
         }
     }
+
     /* Metodo auxiliar para ler todos os registros do arquivo .csv */
     private void lerRegistrosDoArquivo() {
         cadaveres.clear();
         try {
             List<String> linhas = Files.readAllLines(Paths.get(DATA_FILE_STRING));
             for (String linha : linhas) {
-            	Cadaver corpo = Cadaver.parseCadaver(linha);
-            	cadaveres.add(corpo);
+                Cadaver corpo = Cadaver.parseCadaver(linha);
+                cadaveres.add(corpo);
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(this, "Error reading produtos file: " + e.getMessage());
@@ -634,10 +728,11 @@ public class Controlador extends JFrame {
     private void EmDesenvolvimento() {
         JOptionPane.showMessageDialog(this, "Em Desenvolvimento...");
     }
-    
+
     private void sairDoSistema() {
-        int confirmation = JOptionPane.showConfirmDialog(this, "Deseja sair do sistema?", "Confirmação", JOptionPane.YES_NO_OPTION);
-        
+        int confirmation = JOptionPane.showConfirmDialog(this, "Deseja sair do sistema?", "Confirmação",
+                JOptionPane.YES_NO_OPTION);
+
         if (confirmation == JOptionPane.YES_OPTION) {
             // Implement here the code to exit the system
             // For example, you can use System.exit(0) to terminate the application
@@ -654,9 +749,8 @@ public class Controlador extends JFrame {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                new Object[]{"Nome", "CPF"},
-                null
-        );
+                new Object[] { "Nome", "CPF" },
+                null);
 
         // Sort the cadaveres list based on the user's choice
         if (option == 0) {
@@ -673,7 +767,7 @@ public class Controlador extends JFrame {
         // Display the ordered list using the mostrarCadaver() method
         mostrarCadaverOrdenado();
     }
-    
+
     public void buscarRegistros() {
         // Show the option dialog with the buttons
         int option = JOptionPane.showOptionDialog(
@@ -683,9 +777,8 @@ public class Controlador extends JFrame {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                new Object[]{"Nome", "CPF"},
-                null
-        );
+                new Object[] { "Nome", "CPF" },
+                null);
 
         // Check the user's choice and perform the search
         if (option == 0) {
@@ -697,28 +790,27 @@ public class Controlador extends JFrame {
             return;
         }
     }
-    
+
     public void buscarRegistrosPorNome() {
         // Ask the user for the search query
         String searchQuery = JOptionPane.showInputDialog(this, "Digite o Nome para buscar:");
-        
+
         if (searchQuery == null) {
             // User canceled the input or closed the dialog
             return;
         }
-        
+
         // Create lists to store the search results
         List<Cadaver> searchResults = new ArrayList<>();
 
         // Perform the search based on the user's choice (name or CPF)
         for (Cadaver cadaver : cadaveres) {
-        	if (searchQuery != null)
-        	{
-        		if (cadaver.getNome().toLowerCase().contains(searchQuery.toLowerCase())) {
+            if (searchQuery != null) {
+                if (cadaver.getNome().toLowerCase().contains(searchQuery.toLowerCase())) {
                     searchResults.add(cadaver);
                 }
-        	}
-            
+            }
+
         }
 
         // Check if any results were found
@@ -726,14 +818,14 @@ public class Controlador extends JFrame {
             JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
             return;
         }
-        
+
         // Display the search results using the mostrarCadaverOrdenado() method
         mostrarCadaverOrdenado(searchResults);
     }
 
     public void buscarRegistrosPorCPF() {
-    	
-    	JTextField cpfField = new JTextField(15);
+
+        JTextField cpfField = new JTextField(15);
 
         // Set placeholder for CPF field
         cpfField.addFocusListener(new FocusListener() {
@@ -763,9 +855,9 @@ public class Controlador extends JFrame {
         int result = JOptionPane.showConfirmDialog(this, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
-        	// Ask the user for the search query
+            // Ask the user for the search query
             String searchQuery = cpfField.getText().replaceAll("[^0-9]", "");
-            
+
             // Create lists to store the search results
             List<Cadaver> searchResults = new ArrayList<>();
 
@@ -781,16 +873,16 @@ public class Controlador extends JFrame {
                 JOptionPane.showMessageDialog(this, "Nenhum cadáver encontrado para a busca.");
                 return;
             }
-            
+
             // Display the search results using the mostrarCadaverOrdenado() method
             mostrarCadaverOrdenado(searchResults);
         }
 
     }
-    
+
     public void apagarRegistroPorCPF() {
-    	
-    	JTextField cpfField = new JTextField(15);
+
+        JTextField cpfField = new JTextField(15);
 
         // Set placeholder for CPF field
         cpfField.addFocusListener(new FocusListener() {
@@ -820,16 +912,16 @@ public class Controlador extends JFrame {
         int result = JOptionPane.showConfirmDialog(this, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
 
         String searchQuery = cpfField.getText();
-        
+
         if (searchQuery == null) {
             // User canceled the input or closed the dialog
             return;
         }
-        
+
         if (result == JOptionPane.OK_OPTION) {
-        	searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove non-numeric characters
+            searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove non-numeric characters
             searchQuery = formatCPF(searchQuery);
-            
+
             // Read all lines from the CSV file
             try {
                 List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
@@ -838,7 +930,7 @@ public class Controlador extends JFrame {
                 // Create a temporary list to store lines that don't match the searched CPF
                 List<String> updatedLines = new ArrayList<>();
                 String linha = "";
-                
+
                 // Search for the record with the given CPF and remove it from the lines list
                 for (String line : lines) {
                     if (!line.startsWith(searchQuery + ";")) {
@@ -854,29 +946,109 @@ public class Controlador extends JFrame {
                     JOptionPane.showMessageDialog(this, "CPF não encontrado no arquivo.");
                     return;
                 }
-                
+
                 Cadaver corpo = Cadaver.parseCadaver(linha);
 
                 // Confirm the deletion before proceeding
-                int confirmation = JOptionPane.showConfirmDialog(this, "Deseja apagar o registro com o CPF: " + searchQuery + "?" + 
-                "\nNome: " + corpo.getNome() + "\nSituação: " + corpo.getSituacao(), "Confirmação", JOptionPane.YES_NO_OPTION);
+                int confirmation = JOptionPane.showConfirmDialog(this,
+                        "Deseja apagar o registro com o CPF: " + searchQuery + "?" +
+                                "\nNome: " + corpo.getNome() + "\nSituação: " + corpo.getSituacao(),
+                        "Confirmação", JOptionPane.YES_NO_OPTION);
                 if (confirmation == JOptionPane.YES_OPTION) {
-                	if (autenticarAdmin())
-                	{
-                		// Write the updated data back to the CSV file
-                        Files.write(Paths.get(common.Paths.getDataPath()), updatedLines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                    if (autenticarAdmin()) {
+                        // Write the updated data back to the CSV file
+                        Files.write(Paths.get(common.Paths.getDataPath()), updatedLines, StandardOpenOption.CREATE,
+                                StandardOpenOption.TRUNCATE_EXISTING);
 
                         JOptionPane.showMessageDialog(this, "Registro apagado com sucesso!");
-                	}
+                    }
                 }
-                
+
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this, "Erro ao acessar o arquivo: " + e.getMessage());
             }
         }
-        
+
     }
-    
+
+    public void alterarSituacaoCadaver() {
+        JTextField cpfField = new JTextField(15);
+
+        cpfField.addFocusListener(new FocusListener() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                if (cpfField.getText().equals("Apenas Números")) {
+                    cpfField.setText("");
+                    cpfField.setForeground(Color.BLACK);
+                }
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (cpfField.getText().isEmpty()) {
+                    cpfField.setText("Apenas Números");
+                    cpfField.setForeground(Color.GRAY);
+                }
+            }
+        });
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Digite o CPF para alterar a situação:"));
+        panel.add(cpfField);
+
+        int result = JOptionPane.showConfirmDialog(null, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
+
+        String searchQuery = cpfField.getText();
+
+        if (searchQuery == null || searchQuery.equals("Apenas Números")) {
+            return;
+        }
+
+        if (result == JOptionPane.OK_OPTION) {
+            searchQuery = searchQuery.replaceAll("[^0-9]", "");
+            searchQuery = formatCPF(searchQuery);
+
+            // Read all lines from the file and update the situacao field
+            try {
+                List<String> lines = Files.readAllLines(Paths.get(common.Paths.getDataPath()));
+                boolean found = false;
+
+                // Update the situacao for the record with the given CPF
+                for (int i = 0; i < lines.size(); i++) {
+                    String line = lines.get(i);
+                    if (line.startsWith(searchQuery + ";")) {
+                        String[] parts = line.split(";");
+                        String nome = parts[1];
+                        String novaSituacao = JOptionPane.showInputDialog(null, "Nova Situação para " + nome + ":");
+                        if (novaSituacao != null && !novaSituacao.isEmpty()) {
+                            parts[5] = novaSituacao;
+                            lines.set(i, String.join(";", parts));
+                            found = true;
+                        } else {
+                            JOptionPane.showMessageDialog(null, "A nova situação não pode ser vazia.");
+                        }
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    JOptionPane.showMessageDialog(null, "CPF não encontrado no arquivo.");
+                    return;
+                }
+
+                Files.write(Paths.get(common.Paths.getDataPath()), lines, StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+
+                JOptionPane.showMessageDialog(null, "Situação atualizada com sucesso!");
+
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(null, "Erro ao acessar o arquivo: " + e.getMessage());
+            }
+        }
+    }
+
     public void abrirOpcoesAdmin() {
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
@@ -901,7 +1073,8 @@ public class Controlador extends JFrame {
         optionsPanel.add(cancelButton);
 
         // Set the preferred size to make the box 2 times bigger
-        optionsPanel.setPreferredSize(new Dimension(optionsPanel.getPreferredSize().width, optionsPanel.getPreferredSize().height * 2));
+        optionsPanel.setPreferredSize(
+                new Dimension(optionsPanel.getPreferredSize().width, optionsPanel.getPreferredSize().height * 2));
 
         JOptionPane.showOptionDialog(
                 this,
@@ -910,12 +1083,10 @@ public class Controlador extends JFrame {
                 JOptionPane.DEFAULT_OPTION,
                 JOptionPane.PLAIN_MESSAGE,
                 null,
-                new Object[]{},
-                null
-        );
+                new Object[] {},
+                null);
     }
 
-    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
