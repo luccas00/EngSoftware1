@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Iterator;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -436,7 +437,7 @@ public class Controlador extends JFrame {
         // Create the table model
         DefaultTableModel tableModel = new DefaultTableModel();
         tableModel.setColumnIdentifiers(
-                new Object[] { "Nome", "CPF", "Login", "Senha", "Cargo" });
+                new Object[] { "CPF","Nome", "Login", "Senha", "Cargo" });
 
         // Populate the table model with data from the cadaver list
         for (Funcionario funcionario : funcionarios) {
@@ -886,7 +887,7 @@ public class Controlador extends JFrame {
         }
     }
 
-    private void escreverFuncionarioNoArquivo() {
+     void escreverFuncionarioNoArquivo() {
         try (FileWriter writer = new FileWriter(FUNC_DATA_FILE_STRING, true)) {
             Funcionario funcionario = funcionarios.get(funcionarios.size() - 1);
             writer.write(funcionario.toString());
@@ -898,7 +899,7 @@ public class Controlador extends JFrame {
     }
 
     /* Metodo auxiliar para ler todos os registros do arquivo .csv */
-    private void lerRegistrosDoArquivo() {
+    public void lerRegistrosDoArquivo() {
         cadaveres.clear();
         try {
             List<String> linhas = Files.readAllLines(Paths.get(DATA_FILE_STRING));
@@ -911,7 +912,7 @@ public class Controlador extends JFrame {
         }
     }
 
-    private void lerFuncionariosDoArquivo() {
+    public void lerFuncionariosDoArquivo() {
         funcionarios.clear();
         try {
             List<String> linhas = Files.readAllLines(Paths.get(FUNC_DATA_FILE_STRING));
@@ -1259,11 +1260,11 @@ public class Controlador extends JFrame {
 
         JButton removerAdminButton = new JButton("Remover Admin");
         removerAdminButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        removerAdminButton.addActionListener(e -> removerAdmin());
+        removerAdminButton.addActionListener(e -> removerAdmin2());
 
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        cancelButton.addActionListener(e -> Cancelar());
+        cancelButton.addActionListener(e -> EmDesenvolvimento());
 
         optionsPanel.add(Box.createVerticalStrut(20));
         optionsPanel.add(adicionarAdminButton);
@@ -1290,7 +1291,7 @@ public class Controlador extends JFrame {
     private void AdicionarAdmin() {
         JTextField cpfField = new JTextField(15);
         JTextField nomeField = new JTextField(15);
-        JTextField loginField = new JTextField(15);
+        JTextField login_acessoField = new JTextField(15);
         JPasswordField senhaField = new JPasswordField(15);
         JTextField cargoField = new JTextField(15);
 
@@ -1325,7 +1326,7 @@ public class Controlador extends JFrame {
         panel.add(new JLabel("Nome:"));
         panel.add(nomeField);
         panel.add(new JLabel("Login:"));
-        panel.add(loginField);
+        panel.add(login_acessoField);
         panel.add(new JLabel("Criar senha:"));
         panel.add(senhaField);
         panel.add(new JLabel("Cargo:"));
@@ -1333,21 +1334,22 @@ public class Controlador extends JFrame {
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Adicionar Funcionário", JOptionPane.OK_CANCEL_OPTION);
 
-        //ALTERAR PARA CLASSE FUNCIONÁRIO
+        
         if (result == JOptionPane.OK_OPTION) {
             String cpf = cpfField.getText().replaceAll("[^0-9]", ""); // Remove non-numeric characters from the input
             String nome = nomeField.getText();
-            String login = loginField.getText();
-            String senha = senhaField.getText();
-            //char[] senha = senhaField.getPassword();
+            String login_acesso = login_acessoField.getText();
+            //String senha = senhaField.getText();
+            char[] senhaChars = senhaField.getPassword();
+            String senha = new String(senhaChars);
             String cargo = cargoField.getText();
 
-            if (confirmarEntrada(cpf, nome, login, senha, cargo)) {
+            if (confirmarCampos(cpf, nome, login_acesso, senha, cargo)) {
                 // Show a confirmation dialog before adding the record
                 String message = "Deseja adicionar o seguinte Funcionário?\n\n"
                         + "CPF: " + formatCPF(cpf) + "\n"
                         + "Nome: " + nome + "\n"
-                        + "Login: " + login + "\n"
+                        + "Login: " + login_acesso + "\n"
                         + "Senha: " + senha + "\n"
                         + "Cargo: " + cargo + "\n";
 
@@ -1355,9 +1357,10 @@ public class Controlador extends JFrame {
                         JOptionPane.YES_NO_OPTION);
 
                 if (confirmation == JOptionPane.YES_OPTION) {
-                    Cadaver corpo = new Cadaver(formatCPF(cpf), nome, login, senha, cargo);
-                    cadaveres.add(corpo);
-                    escreverRegistrosNoArquivo();
+                     Funcionario funcionario = new Funcionario(formatCPF(cpf), nome, login_acesso, senha, cargo);
+                    funcionarios.add(funcionario);
+                    escreverFuncionarioNoArquivo();//COLOCAR CONFIRMAÇÃO QUE FOI ADICIONADO 
+                    JOptionPane.showMessageDialog(this, "Funcionário adicionado com sucesso!");
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Preencha todos os campos antes de adicionar o funcionário.");
@@ -1365,7 +1368,98 @@ public class Controlador extends JFrame {
         }
     }
 
-    public void removerAdmin() {
+    //esse está encontrando atraves do cpf 
+    public void apagarFuncionarioPorCPF() {
+        JTextField cpfField = new JTextField(15);
+    
+        // Adicionar o FocusListener ao campo de CPF
+            cpfField.addFocusListener(new FocusListener() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    // Código a ser executado quando o campo de CPF ganhar foco
+                }
+
+                @Override
+                public void focusLost(FocusEvent e) {
+                    // Código a ser executado quando o campo de CPF perder foco
+                }
+            });
+
+        // Configurar o placeholder e cor do texto
+        cpfField.setText("Apenas Números");
+        cpfField.setForeground(Color.GRAY);
+    
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        panel.add(new JLabel("Digite o CPF para apagar o funcionário:"));
+        panel.add(cpfField);
+    
+        int result = JOptionPane.showConfirmDialog(this, panel, "Digite o CPF", JOptionPane.OK_CANCEL_OPTION);
+    
+        String searchQuery = cpfField.getText();
+    
+        if (searchQuery == null) {
+            // Usuário cancelou a entrada ou fechou a caixa de diálogo
+            return;
+        }
+    
+        if (result == JOptionPane.OK_OPTION) {
+            searchQuery = searchQuery.replaceAll("[^0-9]", ""); // Remove caracteres não numéricos
+            searchQuery = formatCPF(searchQuery);
+    
+            // Verificar se o CPF está vazio
+            if (searchQuery.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "CPF inválido.");
+                return;
+            }
+    
+            boolean found = false;
+            Funcionario funcionarioRemovido = null;
+    
+            // Procurar pelo funcionário com o CPF fornecido e removê-lo da lista
+            for (Funcionario funcionario : funcionarios) {
+                if (funcionario.getCpf().equals(searchQuery)) {
+                    funcionarioRemovido = funcionario;
+                    found = true;
+                    break; // Encontrou o funcionário, pode sair do loop
+                }
+            }
+    
+            // Se o CPF não foi encontrado, exibir uma mensagem e retornar
+            if (!found) {
+                JOptionPane.showMessageDialog(this, "Funcionário com o CPF fornecido não encontrado.");
+                return;
+            }
+    
+            // Confirmar a remoção antes de prosseguir
+            int confirmation = JOptionPane.showConfirmDialog(this,
+                    "Deseja apagar o funcionário com o CPF: " + searchQuery + "?" +
+                            "\nNome: " + funcionarioRemovido.getNome() + "\nCargo: " + funcionarioRemovido.getCargo(),
+                    "Confirmação", JOptionPane.YES_NO_OPTION);
+    
+            if (confirmation == JOptionPane.YES_OPTION) {
+                if (autenticarAdmin()) {
+                    // Remover o funcionário da lista
+                    Iterator<Funcionario> iterator = funcionarios.iterator();
+                    while (iterator.hasNext()) {
+                        Funcionario funcionario = iterator.next();
+                        if (funcionario.getCpf().equals(searchQuery)) {
+                            funcionarioRemovido = funcionario;
+                            iterator.remove(); // Remover o funcionário usando o Iterator
+                            found = true;
+                            break; // Encontrou o funcionário, pode sair do loop
+                        }
+                    }
+    
+                    // Atualizar o arquivo de dados (se necessário) - você precisa implementar essa parte
+    
+                    JOptionPane.showMessageDialog(this, "Funcionário apagado com sucesso!");
+                }
+            }
+        }
+    }
+    
+
+    public void removerAdmin2() {
 
         JTextField cpfField = new JTextField(15);
 
@@ -1431,13 +1525,13 @@ public class Controlador extends JFrame {
                     JOptionPane.showMessageDialog(this, "CPF não encontrado no arquivo.");
                     return;
                 }
-                //Funcionario funcionario = Funcionario.parseFuncionario(linha)
-                Cadaver corpo = Cadaver.parseCadaver(linha);
 
+                Funcionario funcionario = Funcionario.parseFuncionario(linha);
+                
                 // Confirm the deletion before proceeding
                 int confirmation = JOptionPane.showConfirmDialog(this,
                         "Deseja apagar o Funcionario com o CPF: " + searchQuery + "?" +
-                                "\nNome: " + corpo.getNome() + "\nCargo: " + corpo.getSituacao(),
+                                "\nNome: " + funcionario.getNome() + "\nCargo: " + funcionario.getCargo(),
                         "Confirmação", JOptionPane.YES_NO_OPTION);
                 if (confirmation == JOptionPane.YES_OPTION) {
                     if (autenticarAdmin()) {
@@ -1456,25 +1550,13 @@ public class Controlador extends JFrame {
 
     }
 
-    private void Cancelar() {
+
+    public void Cancelar() {
         int confirmation = JOptionPane.showConfirmDialog(optionsPanel, "Deseja encerrar a área de administração?", "Confirmação",
             JOptionPane.YES_NO_OPTION);
-
-    if (confirmation == JOptionPane.YES_OPTION) {
-        // Obter a janela que contém o homePanel
-        Window parentWindow = SwingUtilities.getWindowAncestor(optionsPanel);
-
-        // Fechar a janela que contém o homePanel, se encontrada
-        if (parentWindow != null && parentWindow instanceof JFrame) {
-            parentWindow.dispose();
-    }}
 }
 
     
-
-
-
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
