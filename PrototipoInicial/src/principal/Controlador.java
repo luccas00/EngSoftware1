@@ -138,7 +138,7 @@ public class Controlador extends JFrame {
     private void Inicializar() {
         String folderPath = common.Paths.getDataFolderPath();
         File folder = new File(folderPath);
-        String dataPath = folderPath + "/datas.csv";
+        String dataPath = folderPath + "/datasss.csv";
         String dataEmployeePath = folderPath + "/dataemployee.csv";
         File data = new File(dataPath);
         File dataEmployee = new File(dataEmployeePath);
