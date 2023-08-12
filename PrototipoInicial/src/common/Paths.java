@@ -22,7 +22,7 @@ public class Paths {
 	
 	public static String getDataPath()
 	{
-		return desktopPath + "/Datas/datasss.csv";
+		return desktopPath + "/Datas/datas.csv";
 	}
 	
 	public static String getDataEmployeePath()
